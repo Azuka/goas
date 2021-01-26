@@ -754,7 +754,7 @@ func (p *parser) parseParamComment(pkgPath, pkgName string, operation *Operation
 		if in == "path" {
 			parameterObject.Required = true
 		}
-		if goType == "time.Time" {
+		if goType == "time.Time" || goType == "uuid.UUID" {
 			var err error
 			parameterObject.Schema, err = p.parseSchemaObject(pkgPath, pkgName, goType)
 			if err != nil {
@@ -779,7 +779,7 @@ func (p *parser) parseParamComment(pkgPath, pkgName string, operation *Operation
 		}
 	}
 
-	if strings.HasPrefix(goType, "[]") || strings.HasPrefix(goType, "map[]") || goType == "time.Time" {
+	if strings.HasPrefix(goType, "[]") || strings.HasPrefix(goType, "map[]") || goType == "time.Time" || goType == "uuid.UUID" {
 		schema, err := p.parseSchemaObject(pkgPath, pkgName, goType)
 		if err != nil {
 			p.debug("parseResponseComment cannot parse goType", goType)
@@ -982,6 +982,10 @@ func (p *parser) parseSchemaObject(pkgPath, pkgName, typeName string) (*SchemaOb
 		schemaObject.Type = "string"
 		schemaObject.Format = "date-time"
 		return &schemaObject, nil
+	} else if typeName == "uuid.UUID" {
+		schemaObject.Type = "string"
+		schemaObject.Format = "uuid"
+		return &schemaObject, nil
 	} else if strings.HasPrefix(typeName, "interface{}") {
 		return &schemaObject, nil
 	} else if isGoTypeOASType(typeName) {
@@ -1138,7 +1142,7 @@ astFieldsLoop:
 				p.debug(err)
 				return
 			}
-		} else if typeAsString == "time.Time" {
+		} else if typeAsString == "time.Time" || typeAsString == "uuid.UUID" {
 			fieldSchema, err = p.parseSchemaObject(pkgPath, pkgName, typeAsString)
 			if err != nil {
 				p.debug(err)
@@ -1282,7 +1286,7 @@ astFieldsLoop:
 				p.debug(err)
 				return
 			}
-		} else if typeAsString == "time.Time" {
+		} else if typeAsString == "time.Time" || typeAsString == "uuid.UUID" {
 			fieldSchema, err = p.parseSchemaObject(pkgPath, pkgName, typeAsString)
 			if err != nil {
 				p.debug(err)
